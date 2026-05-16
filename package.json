@@ -5,7 +5,7 @@
   "main": "src/saveNearClinics.js",
   "scripts": {
     "start": "node src/saveNearClinics.js",
-    "test": "echo \"Nenhum teste configurado ainda\" && exit 0"
+    "test": "node test-saveNearClinics.js"
   },
   "keywords": [
     "BenCorp",

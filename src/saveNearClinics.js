@@ -1,35 +1,25 @@
 /**
  * Função principal que salva clínicas próximas e converte data/hora.
- * Cumpre todos os requisitos do case técnico BenCorp.
- * Autor: Geferson
+ * Autor: Geferson Salacinski
  */
 function saveNearClinics(clinics, localization, dataAmericana) {
-    // ==========================
     // 1️⃣ Conversão de data e hora (única função com dois retornos)
-    // ==========================
     let dataConvertida;
     try {
-        // Converte a string para objeto Date considerando GMT local (Brasil)
-        const dataObj = new Date(dataAmericana + "T00:00:00-03:00"); // GMT-3
+        // Converte a string para objeto Date usando meia-noite em GMT-3,
+        // para preservar a mesma data no fuso America/Sao_Paulo.
+        const parsed = new Date(dataAmericana + "T00:00:00-03:00");
 
-        if (isNaN(dataObj.getTime())) {
+        if (isNaN(parsed.getTime())) {
             throw new Error("Data inválida. Não foi possível converter.");
         }
 
-        const dia = dataObj.getDate().toString().padStart(2, "0");
-        const mes = (dataObj.getMonth() + 1).toString().padStart(2, "0");
-        const ano = dataObj.getFullYear();
+        const optionsShort = { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric' };
+        const optionsLong = { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'long', year: 'numeric' };
 
-        const meses = [
-            "janeiro", "fevereiro", "março", "abril", "maio", "junho",
-            "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"
-        ];
+        const dataBrasileira = new Intl.DateTimeFormat('pt-BR', optionsShort).format(parsed);
+        const dataPorExtenso = new Intl.DateTimeFormat('pt-BR', optionsLong).format(parsed);
 
-        const mesExtenso = meses[dataObj.getMonth()];
-        const dataBrasileira = `${dia}/${mes}/${ano}`;
-        const dataPorExtenso = `${dia} de ${mesExtenso} de ${ano}`;
-
-        // Retorno único com os dois formatos
         dataConvertida = {
             formatoBrasileiro: dataBrasileira,
             porExtenso: dataPorExtenso
@@ -39,9 +29,9 @@ function saveNearClinics(clinics, localization, dataAmericana) {
         dataConvertida = { erro: erro.message };
     }
 
-    // ==========================
+    
     // 2️⃣ Correção do bug de raio (faixas exclusivas)
-    // ==========================
+    // para corigir o erro, adicionei o else if para especificar a busca, assim ele vai buscar em uma distancia maior que 10km ate 30km e maior que 30km ate 50km.
     let ids10 = [];
     let ids30 = [];
     let ids50 = [];
@@ -69,7 +59,7 @@ function saveNearClinics(clinics, localization, dataAmericana) {
                     dataPorExtenso: dataConvertida.porExtenso
                 };
 
-                // Faixas exclusivas
+                // Foi criado uma faixa para cada tipo de busca, garantindo que cada clínica seja categorizada em apenas uma faixa de distância, 10km, 30km ou 50km. Assim, evitamos que uma clínica seja listada em múltiplas faixas, o que poderia ocorrer com a lógica anterior. Com essa abordagem, cada clínica será avaliada e classificada de forma clara e precisa, garantindo uma organização mais eficiente dos resultados. resolve o problema de clínicas aparecerem em múltiplas faixas de distância, garantindo que cada clínica seja listada apenas na faixa correspondente à sua distância real do ponto de referência.
                 if (distancia <= 10) {
                     ids10.push(infoClinica);
                 } else if (distancia > 10 && distancia <= 30) {
@@ -83,18 +73,15 @@ function saveNearClinics(clinics, localization, dataAmericana) {
         }
     });
 
-    // ==========================
     // 3️⃣ Retorno final estruturado
-    // ==========================
-    pin.clinicasA10Km = ids10;
-    pin.clinicasA30Km = ids30;
-    pin.clinicasA50Km = ids50;
-
+    // a logica garante que uma clinica so caia em uma unica faixa de distancia, evitando que uma clinica apareca em mais de uma faixa, o que poderia ocorrer com a logica anterior. Com essa abordagem, cada clinica sera avaliada e classificada de forma clara e precisa, garantindo uma organizacao mais eficiente dos resultados.
     return {
-        clinicasA10Km: pin.clinicasA10Km,
-        clinicasA30Km: pin.clinicasA30Km,
-        clinicasA50Km: pin.clinicasA50Km,
+        clinicasA10Km: ids10,
+        clinicasA30Km: ids30,
+        clinicasA50Km: ids50,
         dataFormatada: dataConvertida.formatoBrasileiro,
         dataPorExtenso: dataConvertida.porExtenso
     };
 }
+
+module.exports = saveNearClinics;
