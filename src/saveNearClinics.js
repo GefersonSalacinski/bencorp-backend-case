@@ -74,7 +74,7 @@ function saveNearClinics(clinics, localization, dataAmericana) {
     });
 
     // 3️⃣ Retorno final estruturado
-    // a logica garante que uma clinica so caia em uma unica faixa de distancia, evitando que uma clinica apareca em mais de uma faixa, o que poderia ocorrer com a logica anterior. Com essa abordagem, cada clinica sera avaliada e classificada de forma clara e precisa, garantindo uma organizacao mais eficiente dos resultados.
+    // Aqui mostra o retorno final da função, com as clínicas organizadas por distância e as datas formatadas.
     return {
         clinicasA10Km: ids10,
         clinicasA30Km: ids30,
